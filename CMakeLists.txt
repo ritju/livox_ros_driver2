@@ -1,4 +1,6 @@
 # judge which cmake codes to use 
+set(ROS_EDITION "ROS2")
+set(HUMBLE_ROS "humble")
 if(ROS_EDITION STREQUAL "ROS1")
 
   # Copyright(c) 2019 livoxtech limited.
@@ -229,12 +231,12 @@ else(ROS_EDITION STREQUAL "ROS2")
   find_package(rosidl_default_generators REQUIRED)
 
   # check apr
-  find_package(PkgConfig)
-  pkg_check_modules(APR apr-1)
-  if (APR_FOUND)
-    message(${APR_INCLUDE_DIRS})
-    message(${APR_LIBRARIES})
-  endif (APR_FOUND)
+  # find_package(PkgConfig)
+  # pkg_check_modules(APR apr-1)
+  # if (APR_FOUND)
+  #   message(${APR_INCLUDE_DIRS})
+  #   message(${APR_LIBRARIES})
+  # endif (APR_FOUND)
 
   # generate custom msg headers
   set(LIVOX_INTERFACES livox_interfaces2)
@@ -295,7 +297,6 @@ else(ROS_EDITION STREQUAL "ROS2")
   # include file direcotry
   target_include_directories(${PROJECT_NAME} PUBLIC
     ${PCL_INCLUDE_DIRS}
-    ${APR_INCLUDE_DIRS}
     ${LIVOX_LIDAR_SDK_INCLUDE_DIR}
     ${LIVOX_INTERFACES_INCLUDE_DIRECTORIES}   # for custom msgs
     3rdparty
@@ -309,7 +310,6 @@ else(ROS_EDITION STREQUAL "ROS2")
     ${PPT_LIBRARY}
     ${Boost_LIBRARY}
     ${PCL_LIBRARIES}
-    ${APR_LIBRARIES}
   )
 
   rclcpp_components_register_node(${PROJECT_NAME}

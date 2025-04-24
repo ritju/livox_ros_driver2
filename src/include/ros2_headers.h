@@ -31,7 +31,8 @@
 #include <future>
 
 #include <rclcpp/rclcpp.hpp>
-#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include "livox_ros_driver2/msg/custom_point.hpp"

@@ -64,14 +64,18 @@ bool LivoxLidarConfigParser::Parse(std::vector<UserLivoxLidarConfig> &lidar_conf
 bool LivoxLidarConfigParser::ParseUserConfigs(const rapidjson::Document &doc,
                                               std::vector<UserLivoxLidarConfig> &user_configs) {
   const rapidjson::Value &lidar_configs = doc["lidar_configs"];
+  const char* lidarIp = getenv("LIVOX_DRIVER_LIDAR_IP");
   for (auto &config : lidar_configs.GetArray()) {
-    if (!config.HasMember("ip")) {
+    if (!config.HasMember("ip") && !lidarIp) {
       continue;
     }
     UserLivoxLidarConfig user_config;
 
+    if (lidarIp == NULL) {
+      lidarIp = config["ip"].GetString();
+    }
     // parse user configs
-    user_config.handle = IpStringToNum(std::string(config["ip"].GetString()));
+    user_config.handle = IpStringToNum(std::string(lidarIp));
     if (!config.HasMember("pcl_data_type")) {
       user_config.pcl_data_type = -1;
     } else {
