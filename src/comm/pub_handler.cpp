@@ -28,6 +28,7 @@
 #include <chrono>
 #include <iostream>
 #include <limits>
+#include <cctype>
 
 namespace livox_ros {
 
@@ -36,6 +37,19 @@ std::atomic<bool> PubHandler::is_timestamp_sync_;
 PubHandler &pub_handler() {
   static PubHandler handler;
   return handler;
+}
+
+PubHandler::PubHandler(){
+  auto str = getenv("LIVOX_DRIVER_USE_STEADY_CLOCK");
+  if (str) {
+    std::string s(str);
+    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+    if (s == "1" || s == "true") {
+      use_steady_clock_ = true;
+    }
+  }
+
+  std::cout << "use_steady_clock: " << (use_steady_clock_? "yes":"no") << std::endl;
 }
 
 void PubHandler::Init() {
@@ -114,7 +128,7 @@ void PubHandler::OnLivoxLidarPointCloudCallback(uint32_t handle, const uint8_t d
       ImuData imu_data;
       imu_data.lidar_type = static_cast<uint8_t>(LidarProtoType::kLivoxLidarType);
       imu_data.handle = handle;
-      imu_data.time_stamp = GetEthPacketTimestamp(data->time_type,
+      imu_data.time_stamp = self->GetEthPacketTimestamp(data->time_type,
                                                   data->timestamp, sizeof(data->timestamp));
       imu_data.gyro_x = imu->gyro_x;
       imu_data.gyro_y = imu->gyro_y;
@@ -140,7 +154,7 @@ void PubHandler::OnLivoxLidarPointCloudCallback(uint32_t handle, const uint8_t d
   packet.data_type = data->data_type;
   packet.point_num = data->dot_num;
   packet.point_interval = data->time_interval * 100 / data->dot_num;  //ns
-  packet.time_stamp = GetEthPacketTimestamp(data->time_type,
+  packet.time_stamp = self->GetEthPacketTimestamp(data->time_type,
                                             data->timestamp, sizeof(data->timestamp));
   uint32_t length = data->length - sizeof(LivoxLidarEthernetPacket) + 1;
   packet.raw_data.insert(packet.raw_data.end(), data->data, data->data + length);
@@ -193,7 +207,7 @@ void PubHandler::CheckTimer(uint32_t id) {
       frame_.lidar_num = 0;
     }
   } else { // Disable time synchronization
-    auto now_time = std::chrono::high_resolution_clock::now();
+    auto now_time = use_steady_clock_ ? TimePoint(std::chrono::steady_clock::now().time_since_epoch())  : std::chrono::high_resolution_clock::now();
     //First Set
     static bool first = true;
     if (first) {
@@ -271,6 +285,10 @@ uint64_t PubHandler::GetEthPacketTimestamp(uint8_t timestamp_type, uint8_t* time
     return time.stamp;
   }
 
+  if (use_steady_clock_) {
+    return std::chrono::steady_clock::now().time_since_epoch().count();
+  }
+  
   return std::chrono::high_resolution_clock::now().time_since_epoch().count();
 }
 

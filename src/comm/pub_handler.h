@@ -77,7 +77,7 @@ class PubHandler {
   using ImuDataCallback = std::function<void(ImuData*, void*)>;
   using TimePoint = std::chrono::high_resolution_clock::time_point;
 
-  PubHandler() {}
+  PubHandler();
 
   ~ PubHandler() { Uninit(); }
 
@@ -89,6 +89,7 @@ class PubHandler {
   void AddLidarsExtParam(LidarExtParameter& extrinsic_params);
   void ClearAllLidarsExtrinsicParams();
   void SetImuDataCallback(ImuDataCallback cb, void* client_data);
+  bool UseSteadyClock() { return use_steady_clock_; }
 
  private:
   //thread to process raw data
@@ -105,7 +106,7 @@ class PubHandler {
                                              LivoxLidarEthernetPacket *data, void *client_data);
   
   static bool GetLidarId(LidarProtoType lidar_type, uint32_t handle, uint32_t& id);
-  static uint64_t GetEthPacketTimestamp(uint8_t timestamp_type, uint8_t* time_stamp, uint8_t size);
+  uint64_t GetEthPacketTimestamp(uint8_t timestamp_type, uint8_t* time_stamp, uint8_t size);
 
   PointCloudsCallback points_callback_;
   void* pub_client_data_ = nullptr;
@@ -128,6 +129,9 @@ class PubHandler {
   std::map<uint32_t, LidarExtParameter> lidar_extrinsics_;
   static std::atomic<bool> is_timestamp_sync_;
   uint16_t lidar_listen_id_ = 0;
+
+  // Use steady clock to retreive timestamp insteading using system clock when time sychronization is disabled.
+  bool use_steady_clock_ = false;
 };
 
 PubHandler &pub_handler();

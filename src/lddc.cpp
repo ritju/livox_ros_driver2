@@ -25,6 +25,7 @@
 #include "lddc.h"
 #include "comm/ldq.h"
 #include "comm/comm.h"
+#include "comm/pub_handler.h"
 
 #include <inttypes.h>
 #include <iostream>
@@ -327,6 +328,9 @@ void Lddc::InitPointcloud2Msg(const StoragePacket& pkg, PointCloud2& cloud, uint
     point.tag = pkg.points[i].tag;
     point.line = pkg.points[i].line;
     point.timestamp = static_cast<double>(pkg.points[i].offset_time);
+    if(pub_handler().UseSteadyClock()){
+      point.timestamp /= 1e9;
+    }
     points.push_back(std::move(point));
   }
   cloud.data.resize(pkg.points_num * sizeof(LivoxPointXyzrtlt));
