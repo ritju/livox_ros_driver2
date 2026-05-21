@@ -1,6 +1,6 @@
 # judge which cmake codes to use 
 set(ROS_EDITION "ROS2")
-set(HUMBLE_ROS "humble")
+set(DISTRO_ROS "humble")
 if(ROS_EDITION STREQUAL "ROS1")
 
   # Copyright(c) 2019 livoxtech limited.
