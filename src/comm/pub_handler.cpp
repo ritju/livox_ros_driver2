@@ -140,7 +140,7 @@ void PubHandler::OnLivoxLidarPointCloudCallback(uint32_t handle, const uint8_t d
       }
     }
     else {
-      if (self->time_sync_status_ == 0) {
+      if (self->time_sync_status_ != 1) {
         std::cout << "Waiting for time synchronization..." << std::endl;
         self->time_sync_status_ = 1;
       }
