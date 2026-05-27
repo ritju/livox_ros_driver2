@@ -132,6 +132,11 @@ class PubHandler {
 
   // Use steady clock to retreive timestamp insteading using system clock when time sychronization is disabled.
   bool use_steady_clock_ = false;
+
+  // Publish point cloud / IMU data only after time synchronization.
+  bool wait_for_time_sync_ = false;
+
+  int time_sync_status_ = 0; // 0: unknown, 1: not synced, 2: synced
 };
 
 PubHandler &pub_handler();

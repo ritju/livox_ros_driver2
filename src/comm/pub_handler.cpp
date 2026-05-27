@@ -34,22 +34,32 @@ namespace livox_ros {
 
 std::atomic<bool> PubHandler::is_timestamp_sync_;
 
+static bool get_env_bool(const char* env_var, bool default_value) {
+  auto str = getenv(env_var);
+  if (str) {
+    std::string s(str);
+    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+    if (s == "1" || s == "true") {
+      return true;
+    } else if (s == "0" || s == "false") {
+      return false;
+    }
+  }
+  return default_value;
+}
+
 PubHandler &pub_handler() {
   static PubHandler handler;
   return handler;
 }
 
 PubHandler::PubHandler(){
-  auto str = getenv("LIVOX_DRIVER_USE_STEADY_CLOCK");
-  if (str) {
-    std::string s(str);
-    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-    if (s == "1" || s == "true") {
-      use_steady_clock_ = true;
-    }
-  }
+  use_steady_clock_ = get_env_bool("LIVOX_DRIVER_USE_STEADY_CLOCK", false);
+  wait_for_time_sync_ = get_env_bool("LIVOX_DRIVER_WAIT_FOR_TIME_SYNC", false);
+  if (wait_for_time_sync_) use_steady_clock_ = false;
 
   std::cout << "use_steady_clock: " << (use_steady_clock_? "yes":"no") << std::endl;
+  std::cout << "wait_for_time_sync: " << (wait_for_time_sync_? "yes":"no") << std::endl;
 }
 
 void PubHandler::Init() {
@@ -120,6 +130,22 @@ void PubHandler::OnLivoxLidarPointCloudCallback(uint32_t handle, const uint8_t d
     is_timestamp_sync_.store(true);
   } else {
     is_timestamp_sync_.store(false);
+  }
+
+  if (self->wait_for_time_sync_) {
+    if (is_timestamp_sync_.load()) {
+      if (self->time_sync_status_ != 2) {
+        std::cout << "Time is synchronized." << std::endl;
+        self->time_sync_status_ = 2;
+      }
+    }
+    else {
+      if (self->time_sync_status_ == 0) {
+        std::cout << "Waiting for time synchronization..." << std::endl;
+        self->time_sync_status_ = 1;
+      }
+      return;
+    }
   }
 
   if (data->data_type == kLivoxLidarImuData) {
