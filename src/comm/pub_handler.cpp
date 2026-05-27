@@ -134,12 +134,25 @@ void PubHandler::OnLivoxLidarPointCloudCallback(uint32_t handle, const uint8_t d
 
   if (self->wait_for_time_sync_) {
     if (is_timestamp_sync_.load()) {
-      if (self->time_sync_status_ != 2) {
-        std::cout << "Time is synchronized." << std::endl;
-        self->time_sync_status_ = 2;
+      if (self->time_sync_status_ != 3) {
+        auto ts = self->GetEthPacketTimestamp(
+          data->time_type, data->timestamp, sizeof(data->timestamp));
+        if (ts > 1600000000000000000ULL) {
+          // Consider time is synchronized only if timestamp is greater than 2020-09-13T12:26:40Z.
+          // This is to work around the issue that the LiDAR may report internal time counter near zero when the synchronization is not settled.
+          // We wait until a valid timestamp is received to confirm the time synchronization is done.
+          std::cout << "Time is synchronized." << std::endl;
+          self->time_sync_status_ = 3;
+        }
+        else {
+          if (self->time_sync_status_ != 2) {
+            std::cout << "Waiting for timestamp to settle..." << std::endl;
+            self->time_sync_status_ = 2;
+          }
+          return;
+        }
       }
-    }
-    else {
+    } else {
       if (self->time_sync_status_ != 1) {
         std::cout << "Waiting for time synchronization..." << std::endl;
         self->time_sync_status_ = 1;

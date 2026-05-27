@@ -136,7 +136,7 @@ class PubHandler {
   // Publish point cloud / IMU data only after time synchronization.
   bool wait_for_time_sync_ = false;
 
-  int time_sync_status_ = 0; // 0: unknown, 1: not synced, 2: synced
+  int time_sync_status_ = 0; // 0: unknown, 1: not synced, 2: waiting for settle, 3: synced
 };
 
 PubHandler &pub_handler();
