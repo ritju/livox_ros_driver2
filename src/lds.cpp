@@ -163,6 +163,10 @@ void Lds::StoragePointData(PointFrame* frame) {
       printf("Storage point data failed, lidar type:%u, handle:%u.\n", lidar_point.lidar_type, lidar_point.handle);
       continue;
     }
+    // Receiving a valid point packet proves that the lidar is already sampling.
+    // This also allows receive-only operation for newer devices whose command
+    // protocol is not yet known by the SDK.
+    lidars_[index].connect_state = kConnectStateSampling;
     PushLidarData(&lidar_point, index, base_time);
   }
 }

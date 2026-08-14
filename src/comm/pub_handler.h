@@ -128,6 +128,7 @@ class PubHandler {
   std::map<uint32_t, std::vector<PointXyzlt>> points_;
   std::map<uint32_t, LidarExtParameter> lidar_extrinsics_;
   static std::atomic<bool> is_timestamp_sync_;
+  bool force_single_line_ = false;
   uint16_t lidar_listen_id_ = 0;
 
   // Use steady clock to retreive timestamp insteading using system clock when time sychronization is disabled.

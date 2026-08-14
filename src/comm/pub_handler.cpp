@@ -56,10 +56,12 @@ PubHandler &pub_handler() {
 PubHandler::PubHandler(){
   use_steady_clock_ = get_env_bool("LIVOX_DRIVER_USE_STEADY_CLOCK", false);
   wait_for_time_sync_ = get_env_bool("LIVOX_DRIVER_WAIT_FOR_TIME_SYNC", false);
+  force_single_line_ = get_env_bool("LIVOX_DRIVER_FORCE_SINGLE_LINE", false);
   if (wait_for_time_sync_) use_steady_clock_ = false;
 
   std::cout << "use_steady_clock: " << (use_steady_clock_? "yes":"no") << std::endl;
   std::cout << "wait_for_time_sync: " << (wait_for_time_sync_? "yes":"no") << std::endl;
+  std::cout << "force_single_line: " << (force_single_line_? "yes":"no") << std::endl;
 }
 
 void PubHandler::Init() {
@@ -183,7 +185,9 @@ void PubHandler::OnLivoxLidarPointCloudCallback(uint32_t handle, const uint8_t d
   packet.handle = handle;
   packet.lidar_type = LidarProtoType::kLivoxLidarType;
   packet.extrinsic_enable = false; 
-  if (dev_type == LivoxLidarDeviceType::kLivoxLidarTypeIndustrialHAP) {
+  if (self->force_single_line_) {
+    packet.line_num = kLineNumberDefault;
+  } else if (dev_type == LivoxLidarDeviceType::kLivoxLidarTypeIndustrialHAP) {
     packet.line_num = kLineNumberHAP;
   } else if (dev_type == LivoxLidarDeviceType::kLivoxLidarTypeMid360||dev_type==LivoxLidarDeviceType::kLivoxLidarTypeMid360s) {
     packet.line_num = kLineNumberMid360;
